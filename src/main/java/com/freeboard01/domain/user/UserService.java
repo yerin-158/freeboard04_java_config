@@ -1,6 +1,7 @@
 package com.freeboard01.domain.user;
 
 import com.freeboard01.api.Response;
+import com.freeboard01.api.user.UserDto;
 import com.freeboard01.api.user.UserForm;
 import com.freeboard01.domain.user.enums.UserExceptionType;
 import com.freeboard01.domain.user.enums.UserRole;
@@ -36,7 +37,7 @@ public class UserService {
         userRepository.save(newUser);
     }
 
-    public void login(UserForm user) {
+    public UserDto login(UserForm user) {
         UserEntity userEntity = userRepository.findByAccountId(user.getAccountId());
         if (userEntity == null){
             throw new FreeBoardException(UserExceptionType.NOT_FOUND_USER);
@@ -44,6 +45,7 @@ public class UserService {
         if (userEntity.getPassword().equals(user.getPassword()) == false){
             throw new FreeBoardException(UserExceptionType.WRONG_PASSWORD);
         }
+        return UserDto.of(userEntity); // react-front에서 사용하기 위해 수정
     }
 
 }

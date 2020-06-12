@@ -23,8 +23,9 @@ public class UserApiController {
     }
 
     @PostMapping(params = {"type=LOGIN"})
-    private void login(@RequestBody UserForm user){
-        userService.login(user);
+    private ResponseEntity<UserDto> login(@RequestBody UserForm user){
+        UserDto userDto = userService.login(user);
         httpSession.setAttribute("USER", user);
+        return ResponseEntity.ok(userDto);
     }
 }
