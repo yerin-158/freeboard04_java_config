@@ -5,8 +5,10 @@ import com.freeboard04.domain.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface GoodContentsHistoryRepository extends JpaRepository<GoodContentsHistoryEntity, Long> {
-    Long findByUserAndBoard(UserEntity user, BoardEntity board);
+    Optional<GoodContentsHistoryEntity> findByUserAndBoard(UserEntity user, BoardEntity board);
     int countByBoard(BoardEntity boardEntity);
 }
