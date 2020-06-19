@@ -34,9 +34,10 @@ public class BoardService {
     private GoodContentsHistoryRepository goodContentsHistoryRepository;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository, GoodContentsHistoryRepository goodContentsHistoryRepository) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
+        this.goodContentsHistoryRepository = goodContentsHistoryRepository;
     }
 
     public Page<BoardEntity> get(Pageable pageable) {
@@ -76,33 +77,29 @@ public class BoardService {
             return boardRepository.findAllByWriterIn(userEntityList, PageUtil.convertToZeroBasePageWithSort(pageable));
         }
         Specification<BoardEntity> spec = Specification.where(BoardSpecs.hasContents(keyword, type))
-                                                        .or(BoardSpecs.hasTitle(keyword, type));
+                .or(BoardSpecs.hasTitle(keyword, type));
         return boardRepository.findAll(spec, PageUtil.convertToZeroBasePageWithSort(pageable));
     }
 
-    public void addGoodPoint(UserEntity user, long boardId){
-        BoardEntity targetContents = new BoardEntity();
-        targetContents.setId(boardId);
+    public void addGoodPoint(UserForm userForm, long boardId) {
+        UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
+        BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
-        if (goodContentsHistoryRepository.findByUserAndBoard(user, targetContents) != 0){
-            throw new RuntimeException();
-        }
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).ifPresent(none -> { throw new RuntimeException(); });
 
         goodContentsHistoryRepository.save(
                 GoodContentsHistoryEntity.builder()
-                        .board(targetContents)
+                        .board(target)
                         .user(user)
                         .build()
         );
     }
 
-    public void deleteGoodPoint(UserEntity user, long goodHistoryId, long boardId){
-        BoardEntity targetContents = new BoardEntity();
-        targetContents.setId(boardId);
+    public void deleteGoodPoint(UserForm userForm, long goodHistoryId, long boardId) {
+        UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
+        BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
-        if (goodContentsHistoryRepository.findByUserAndBoard(user, targetContents) == 0){
-            throw new RuntimeException();
-        }
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).orElseThrow(() -> new RuntimeException());
 
         goodContentsHistoryRepository.deleteById(goodHistoryId);
     }

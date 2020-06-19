@@ -75,7 +75,7 @@ public class BoardApiController {
         if (httpSession.getAttribute("USER") == null) {
             throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
         }
-        boardService.addGoodPoint(((UserForm) httpSession.getAttribute("USER")).convertUserEntity(), id);
+        boardService.addGoodPoint((UserForm) httpSession.getAttribute("USER"), id);
     }
 
     @DeleteMapping("/{boardId}/good/{goodHistoryId}")
@@ -83,6 +83,6 @@ public class BoardApiController {
         if (httpSession.getAttribute("USER") == null) {
             throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
         }
-        boardService.deleteGoodPoint(((UserForm) httpSession.getAttribute("USER")).convertUserEntity(), goodHistoryId, boardId);
+        boardService.deleteGoodPoint((UserForm) httpSession.getAttribute("USER"), goodHistoryId, boardId);
     }
 }
