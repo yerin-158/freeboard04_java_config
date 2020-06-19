@@ -28,6 +28,9 @@ public class BoardEntity extends BaseEntity {
     @Column
     private String title;
 
+    @Column
+    private int goodPoint;
+
     @Builder
     public BoardEntity(UserEntity writer, String contents, String title){
         this.writer = writer;
