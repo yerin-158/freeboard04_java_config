@@ -69,4 +69,20 @@ public class BoardApiController {
         List<BoardDto> boardDtoList = pageBoardList.stream().map(boardEntity -> BoardDto.of(boardEntity)).collect(Collectors.toList());
         return ResponseEntity.ok(PageDto.of(pageBoardList, boardDtoList));
     }
+
+    @PostMapping("/{id}/good")
+    public void addGoodPoint(@PathVariable long id){
+        if (httpSession.getAttribute("USER") == null) {
+            throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
+        }
+        boardService.addGoodPoint(((UserForm) httpSession.getAttribute("USER")).convertUserEntity(), id);
+    }
+
+    @DeleteMapping("/{boardId}/good/{goodHistoryId}")
+    public void deleteGoodPoint(@PathVariable long boardId, @PathVariable long goodHistoryId){
+        if (httpSession.getAttribute("USER") == null) {
+            throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
+        }
+        boardService.deleteGoodPoint(((UserForm) httpSession.getAttribute("USER")).convertUserEntity(), goodHistoryId, boardId);
+    }
 }

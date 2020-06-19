@@ -5,6 +5,8 @@ import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.entity.specs.BoardSpecs;
 import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import com.freeboard04.domain.user.enums.UserExceptionType;
@@ -29,6 +31,7 @@ public class BoardService {
 
     private BoardRepository boardRepository;
     private UserRepository userRepository;
+    private GoodContentsHistoryRepository goodContentsHistoryRepository;
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
@@ -75,5 +78,32 @@ public class BoardService {
         Specification<BoardEntity> spec = Specification.where(BoardSpecs.hasContents(keyword, type))
                                                         .or(BoardSpecs.hasTitle(keyword, type));
         return boardRepository.findAll(spec, PageUtil.convertToZeroBasePageWithSort(pageable));
+    }
+
+    public void addGoodPoint(UserEntity user, long boardId){
+        BoardEntity targetContents = new BoardEntity();
+        targetContents.setId(boardId);
+
+        if (goodContentsHistoryRepository.findByUserAndBoard(user, targetContents) != 0){
+            throw new RuntimeException();
+        }
+
+        goodContentsHistoryRepository.save(
+                GoodContentsHistoryEntity.builder()
+                        .board(targetContents)
+                        .user(user)
+                        .build()
+        );
+    }
+
+    public void deleteGoodPoint(UserEntity user, long goodHistoryId, long boardId){
+        BoardEntity targetContents = new BoardEntity();
+        targetContents.setId(boardId);
+
+        if (goodContentsHistoryRepository.findByUserAndBoard(user, targetContents) == 0){
+            throw new RuntimeException();
+        }
+
+        goodContentsHistoryRepository.deleteById(goodHistoryId);
     }
 }
