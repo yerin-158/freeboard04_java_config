@@ -16,6 +16,7 @@ public class BoardDto{
     private String contents;
     private String title;
     private LocalDateTime createdAt;
+    private int goodPoint;
 
     public BoardDto(BoardEntity board) {
         this.writer = UserDto.of(board.getWriter());
