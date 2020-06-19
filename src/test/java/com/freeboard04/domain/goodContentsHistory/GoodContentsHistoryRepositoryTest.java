@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -96,6 +96,24 @@ class GoodContentsHistoryRepositoryTest {
         for (int i = 0; i < goodCount; ++i) {
             sut.save(GoodContentsHistoryEntity.builder().user(userEntities.get(i)).board(newBoard).build());
         }
+    }
+
+    @Test
+    @DisplayName("사용자와 게시글 엔티티를 이용해 좋아요 내역을 가져올 수 있다.")
+    void find_test(){
+        BoardEntity newContents = BoardEntity.builder().writer(userEntity).build();
+        UserEntity loggedUser = userRepository.findAll().stream().filter(user -> user.equals(userEntity) == false).findFirst().get();
+
+        saveNewBoardAndGoodHistory(newContents, loggedUser);
+
+        Optional<GoodContentsHistoryEntity> savedEntity = sut.findByUserAndBoard(loggedUser, newContents);
+
+        assertThat(savedEntity.get(), not(nullValue()));
+    }
+
+    private void saveNewBoardAndGoodHistory(BoardEntity newContents, UserEntity loggedUser) {
+        boardRepository.save(newContents);
+        sut.save(GoodContentsHistoryEntity.builder().user(loggedUser).board(newContents).build());
     }
 
 }

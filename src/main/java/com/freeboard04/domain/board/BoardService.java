@@ -5,6 +5,8 @@ import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.entity.specs.BoardSpecs;
 import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import com.freeboard04.domain.user.enums.UserExceptionType;
@@ -29,11 +31,13 @@ public class BoardService {
 
     private BoardRepository boardRepository;
     private UserRepository userRepository;
+    private GoodContentsHistoryRepository goodContentsHistoryRepository;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository, GoodContentsHistoryRepository goodContentsHistoryRepository) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
+        this.goodContentsHistoryRepository = goodContentsHistoryRepository;
     }
 
     public Page<BoardEntity> get(Pageable pageable) {
@@ -73,7 +77,30 @@ public class BoardService {
             return boardRepository.findAllByWriterIn(userEntityList, PageUtil.convertToZeroBasePageWithSort(pageable));
         }
         Specification<BoardEntity> spec = Specification.where(BoardSpecs.hasContents(keyword, type))
-                                                        .or(BoardSpecs.hasTitle(keyword, type));
+                .or(BoardSpecs.hasTitle(keyword, type));
         return boardRepository.findAll(spec, PageUtil.convertToZeroBasePageWithSort(pageable));
+    }
+
+    public void addGoodPoint(UserForm userForm, long boardId) {
+        UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
+        BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
+
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).ifPresent(none -> { throw new RuntimeException(); });
+
+        goodContentsHistoryRepository.save(
+                GoodContentsHistoryEntity.builder()
+                        .board(target)
+                        .user(user)
+                        .build()
+        );
+    }
+
+    public void deleteGoodPoint(UserForm userForm, long goodHistoryId, long boardId) {
+        UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
+        BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
+
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).orElseThrow(() -> new RuntimeException());
+
+        goodContentsHistoryRepository.deleteById(goodHistoryId);
     }
 }
