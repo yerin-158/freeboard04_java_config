@@ -5,6 +5,8 @@ import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.BoardEntity;
 import com.freeboard04.domain.board.BoardRepository;
 import com.freeboard04.domain.board.enums.SearchType;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +14,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.annotation.Rollback;
@@ -22,6 +26,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+
+import javax.persistence.EntityManager;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -42,6 +52,12 @@ public class BoardApiControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private GoodContentsHistoryRepository goodContentsHistoryRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private MockMvc mvc;
 
@@ -80,11 +96,12 @@ public class BoardApiControllerTest {
         ObjectMapper objectMapper = new ObjectMapper();
 
         mvc.perform(post("/api/boards")
-                        .session(mockHttpSession)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(boardForm)))
+                .session(mockHttpSession)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(boardForm)))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{'contents':'"+boardForm.getContents()+"'}"));;
+                .andExpect(content().json("{'contents':'" + boardForm.getContents() + "'}"));
+        ;
     }
 
     @Test
@@ -93,7 +110,7 @@ public class BoardApiControllerTest {
         BoardForm updateForm = BoardForm.builder().title("제목을 입력하세요").contents("수정된 데이터입니다 ^^*").build();
         ObjectMapper objectMapper = new ObjectMapper();
 
-        mvc.perform(put("/api/boards/"+testBoard.getId())
+        mvc.perform(put("/api/boards/" + testBoard.getId())
                 .session(mockHttpSession)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(updateForm)))
@@ -106,7 +123,7 @@ public class BoardApiControllerTest {
         UserEntity wrongUser = userRepository.findAll().get(1);
         BoardEntity wrongBoard = boardRepository.findAllByWriterId(wrongUser.getId()).get(0);
 
-        mvc.perform(delete("/api/boards/"+wrongBoard.getId())
+        mvc.perform(delete("/api/boards/" + wrongBoard.getId())
                 .session(mockHttpSession))
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"));
@@ -115,7 +132,7 @@ public class BoardApiControllerTest {
     @Test
     @DisplayName("올바른 패스워드를 입력한 경우 데이터를 삭제하고 true를 반환한다.")
     public void deleteTest2() throws Exception {
-        mvc.perform(delete("/api/boards/"+testBoard.getId())
+        mvc.perform(delete("/api/boards/" + testBoard.getId())
                 .session(mockHttpSession))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
@@ -125,7 +142,7 @@ public class BoardApiControllerTest {
     @DisplayName("게시판 검색 테스트-타이틀")
     public void searchTest() throws Exception {
         String keyword = "test";
-        mvc.perform(get("/api/boards?type="+SearchType.TITLE+"&keyword="+keyword)
+        mvc.perform(get("/api/boards?type=" + SearchType.TITLE + "&keyword=" + keyword)
                 .session(mockHttpSession))
                 .andExpect(status().isOk());
     }
@@ -134,9 +151,86 @@ public class BoardApiControllerTest {
     @DisplayName("게시판 검색 테스트-글 작성자")
     public void searchTest2() throws Exception {
         String keyword = "yerin";
-        mvc.perform(get("/api/boards?type="+SearchType.WRITER+"&keyword="+keyword)
+        mvc.perform(get("/api/boards?type=" + SearchType.WRITER + "&keyword=" + keyword)
                 .session(mockHttpSession))
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("아직 좋아요하지 않은 글에 좋아요를 한다.")
+    public void good() throws Exception {
+        Map<String, Object> target = getTargetUserAndBoard();
+        BoardEntity targetBoard = (BoardEntity) target.get("targetBoard");
+        setMockHttpSession((UserEntity) target.get("targetUser"));
+
+        assert targetBoard != null;
+
+        mvc.perform(post("/api/boards/" + targetBoard.getId() + "/good")
+                .session(mockHttpSession))
+                .andExpect(status().isOk());
+    }
+
+    private Map<String, Object> getTargetUserAndBoard() {
+        boolean findTarget = false;
+        long boardTotal = boardRepository.count();
+        int findSize = 30;
+
+        Map<String, Object> target = new HashMap<>();
+
+        List<UserEntity> userEntities = userRepository.findAll();
+
+        for (UserEntity user : userEntities) {
+            for (int index = 0; index <= boardTotal / findSize; index += findSize) {
+                Page<BoardEntity> boardEntityPage = boardRepository.findAll(PageRequest.of(index, findSize));
+                List<BoardEntity> boardEntities = boardEntityPage.getContent().stream().filter(entity -> entity.getWriter().equals(user) == false).collect(Collectors.toList());
+                for (BoardEntity board : boardEntities) {
+                    if (goodContentsHistoryRepository.findByUserAndBoard(user, board).isPresent() == false) {
+                        target.put("targetUser", user);
+                        target.put("targetBoard", board);
+                        findTarget = true;
+                        break;
+                    }
+                }
+                if (findTarget) { break; }
+            }
+            if (findTarget) { break; }
+        }
+        return target;
+    }
+
+    private void setMockHttpSession(UserEntity targetUser) {
+        assert targetUser != null;
+
+        mockHttpSession.clearAttributes();
+        mockHttpSession.setAttribute("USER", UserForm.builder().accountId(targetUser.getAccountId()).password(targetUser.getPassword()).build());
+    }
+
+    @Test
+    @DisplayName("좋아요 했던 글을 취소한다.")
+    void good_cancel() throws Exception {
+        GoodContentsHistoryEntity goodContentsHistoryEntity = getGoodContentsHistoryEntity();
+
+        mvc.perform(delete("/api/boards/"+goodContentsHistoryEntity.getBoard().getId()+"/good/"+goodContentsHistoryEntity.getId())
+                .session(mockHttpSession))
+                .andExpect(status().isOk());
+    }
+
+    private GoodContentsHistoryEntity getGoodContentsHistoryEntity() {
+        Map<String, Object> target = getTargetUserAndBoard();
+        BoardEntity targetBoard = (BoardEntity) target.get("targetBoard");
+        UserEntity targetUser = (UserEntity) target.get("targetUser");
+
+        assert targetBoard != null;
+        assert targetUser != null;
+
+        GoodContentsHistoryEntity goodContentsHistoryEntity = goodContentsHistoryRepository.save(
+                GoodContentsHistoryEntity.builder()
+                        .board(targetBoard)
+                        .user(targetUser)
+                        .build()
+        );
+        setMockHttpSession(targetUser);
+
+        return goodContentsHistoryEntity;
+    }
 }
