@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties>
+        <property name="id" value="id"/>
+        <property name="createdAt" value="createdAt"/>
+        <property name="updatedAt" value="updatedAt"/>
+
+        <property name="good_contents_history" value="good_contents_history"/>
+        <property name="boardId" value="boardId"/>
+        <property name="userId" value="userId"/>
+
+    </properties>
+
+    <typeAliases>
+        <typeAlias alias="goodHistoryVo" type="com.freeboard04.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO"/>
+    </typeAliases>
+</configuration>
