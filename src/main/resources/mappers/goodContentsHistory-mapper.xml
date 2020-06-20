@@ -9,4 +9,12 @@
         WHERE boardId IN <foreach collection="boards" item="board" index='i' open="(" close=")" separator=",">#{board.id}</foreach>
         GROUP BY boardId
     </select>
+
+    <select id="countByBoardInAndUser" resultType="goodHistoryVo">
+        SELECT boardId as groupId, count(*) as likeCount
+        FROM good_contents_history
+        WHERE boardId IN <foreach collection="boards" item="board" index='i' open="(" close=")" separator=",">#{board.id}</foreach>
+            AND userId = #{user.id}
+        GROUP BY boardId
+    </select>
 </mapper>
