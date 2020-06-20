@@ -7,6 +7,7 @@ import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
+import com.freeboard04.domain.goodContentsHistory.enums.GoodContentsHistoryExceptionType;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import com.freeboard04.domain.user.enums.UserExceptionType;
@@ -85,7 +86,9 @@ public class BoardService {
         UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
         BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
-        goodContentsHistoryRepository.findByUserAndBoard(user, target).ifPresent(none -> { throw new RuntimeException(); });
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).ifPresent(none -> {
+            throw new FreeBoardException(GoodContentsHistoryExceptionType.HISTORY_ALREADY_EXISTS);
+        });
 
         goodContentsHistoryRepository.save(
                 GoodContentsHistoryEntity.builder()
@@ -99,7 +102,7 @@ public class BoardService {
         UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
         BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
-        goodContentsHistoryRepository.findByUserAndBoard(user, target).orElseThrow(() -> new RuntimeException());
+        goodContentsHistoryRepository.findByUserAndBoard(user, target).orElseThrow(() -> new FreeBoardException(GoodContentsHistoryExceptionType.CANNOT_FIND_HISTORY));
 
         goodContentsHistoryRepository.deleteById(goodHistoryId);
     }
