@@ -88,17 +88,20 @@ class GoodContentsHistoryMapperTest {
     @DisplayName("특정 게시물 목록에 대해 해당 사용자가 좋아요 한 내역을 가져온다.")
     void countByBoardInAndUser_test(){
         List<BoardEntity> newBoards = getBoards(2);
-        boardRepository.saveAll(newBoards);
-
         BoardEntity likeContents = newBoards.get(0);
-
         UserEntity userLoggedIn = userRepository.findAll().stream().filter(user -> user.equals(userEntity) == false).findFirst().get();
-        goodContentsHistoryRepository.save(GoodContentsHistoryEntity.builder().board(likeContents).user(userLoggedIn).build());
+        saveBoardAndGoodHistory(newBoards, likeContents, userLoggedIn);
 
         List<CountGoodContentsHistoryVO> vos = sut.countByBoardInAndUser(newBoards, userLoggedIn);
+
         for (CountGoodContentsHistoryVO vo : vos){
             assertThat(vo.getGroupId(), equalTo(likeContents.getId()));
             assertThat(vo.getLikeCount(), equalTo(1L));
         }
+    }
+
+    private void saveBoardAndGoodHistory(List<BoardEntity> newBoards, BoardEntity likeContents, UserEntity userLoggedIn) {
+        boardRepository.saveAll(newBoards);
+        goodContentsHistoryRepository.save(GoodContentsHistoryEntity.builder().board(likeContents).user(userLoggedIn).build());
     }
 }
