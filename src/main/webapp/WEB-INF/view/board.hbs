@@ -101,7 +101,7 @@
 
         var cancelLike = (boardId, goodHistoryId) => {
             $.ajax({
-                method: 'POST',
+                method: 'DELETE',
                 url: 'api/boards/' + boardId + "/good/" + goodHistoryId
             }).done(function (response) {
                 if(typeof response.message != 'undefined'){
