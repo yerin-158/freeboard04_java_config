@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.BoardEntity;
 import com.freeboard04.domain.board.BoardRepository;
+import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
+import com.freeboard04.util.exception.FreeBoardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,7 +44,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml", "file:src/main/webapp/WEB-INF/dispatcher-servlet.xml"})
 @Transactional
 @WebAppConfiguration
-@Rollback(value = false)
 public class BoardApiControllerTest {
 
     @Autowired
@@ -118,24 +120,24 @@ public class BoardApiControllerTest {
     }
 
     @Test
-    @DisplayName("잘못된 패스워드를 입력한 경우 데이터는 삭제되지 않고 false를 반환한다.")
+    @DisplayName("자신이 작성하지 않은 글을 삭제하려고 하면 데이터는 삭제되지 않고 예외처리 된다..")
     public void deleteTest1() throws Exception {
         UserEntity wrongUser = userRepository.findAll().get(1);
         BoardEntity wrongBoard = boardRepository.findAllByWriterId(wrongUser.getId()).get(0);
 
         mvc.perform(delete("/api/boards/" + wrongBoard.getId())
                 .session(mockHttpSession))
-                .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(result -> assertEquals(result.getResolvedException().getMessage(), BoardExceptionType.NO_QUALIFICATION_USER.getErrorMessage()))
+                .andExpect(result -> assertEquals(result.getResolvedException().getClass().getCanonicalName(), FreeBoardException.class.getCanonicalName()))
+                .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("올바른 패스워드를 입력한 경우 데이터를 삭제하고 true를 반환한다.")
+    @DisplayName("자신이 작성한 글을 삭제하려고 하면 데이터를 삭제한다.")
     public void deleteTest2() throws Exception {
         mvc.perform(delete("/api/boards/" + testBoard.getId())
                 .session(mockHttpSession))
-                .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -191,9 +193,13 @@ public class BoardApiControllerTest {
                         break;
                     }
                 }
-                if (findTarget) { break; }
+                if (findTarget) {
+                    break;
+                }
             }
-            if (findTarget) { break; }
+            if (findTarget) {
+                break;
+            }
         }
         return target;
     }
@@ -210,7 +216,7 @@ public class BoardApiControllerTest {
     void good_cancel() throws Exception {
         GoodContentsHistoryEntity goodContentsHistoryEntity = getGoodContentsHistoryEntity();
 
-        mvc.perform(delete("/api/boards/"+goodContentsHistoryEntity.getBoard().getId()+"/good/"+goodContentsHistoryEntity.getId())
+        mvc.perform(delete("/api/boards/" + goodContentsHistoryEntity.getBoard().getId() + "/good/" + goodContentsHistoryEntity.getId())
                 .session(mockHttpSession))
                 .andExpect(status().isOk());
     }
