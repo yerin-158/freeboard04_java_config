@@ -77,6 +77,42 @@
             })
         }
 
+        var handleLikeClick = () => {
+            if (nowBoardList[nowBoardIndex].like === true){
+                cancelLike(nowBoardList[nowBoardIndex].id, nowBoardList[nowBoardIndex].likeHistoryId)
+            } else {
+                addLike(nowBoardList[nowBoardIndex].id)
+            }
+        }
+
+        var addLike = (boardId) => {
+            $.ajax({
+                method: 'POST',
+                url: 'api/boards/' + boardId + "/good"
+            }).done(function (response) {
+                if(typeof response.message != 'undefined'){
+                    alert(response.message);
+                }else{
+                    var nowPoint = parseInt(nowBoardList[nowBoardIndex].likePoint);
+                    $('#boardModal').find('#likePoint').text(nowPoint+1);
+                }
+            })
+        }
+
+        var cancelLike = (boardId, goodHistoryId) => {
+            $.ajax({
+                method: 'POST',
+                url: 'api/boards/' + boardId + "/good/" + goodHistoryId
+            }).done(function (response) {
+                if(typeof response.message != 'undefined'){
+                    alert(response.message);
+                }else{
+                    var nowPoint = parseInt(nowBoardList[nowBoardIndex].likePoint);
+                    $('#boardModal').find('#likePoint').text(nowPoint-1);
+                }
+            })
+        }
+
         var attachBoard = (response) => {
             if (typeof response != 'undefined') {
                 var template = Handlebars.compile($("#tableList").html());
@@ -106,6 +142,7 @@
             $modal.find('#user').val(nowBoardList[index].writer.accountId);
             $modal.find('#title').val(nowBoardList[index].title);
             $modal.find('#contents').val(nowBoardList[index].contents);
+            $modal.find('#likePoint').text(nowBoardList[index].likePoint);
         }
 
         var setModifyModal = () => {
