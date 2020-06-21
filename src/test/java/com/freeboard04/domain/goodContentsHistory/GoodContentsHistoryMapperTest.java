@@ -6,6 +6,7 @@ import com.freeboard04.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,8 +86,9 @@ class GoodContentsHistoryMapperTest {
     }
 
     @Test
-    @DisplayName("특정 게시물 목록에 대해 해당 사용자가 좋아요 한 내역을 가져온다.")
-    void countByBoardInAndUser_test(){
+    @DisplayName("(이전 버전 / 사용안함) 특정 게시물 목록에 대해 해당 사용자가 좋아요 한 내역을 가져온다.")
+    @Disabled
+    void countByBoardInAndUser_disabled_test(){
         List<BoardEntity> newBoards = getBoards(2);
         BoardEntity likeContents = newBoards.get(0);
         UserEntity userLoggedIn = userRepository.findAll().stream().filter(user -> user.equals(userEntity) == false).findFirst().get();
@@ -103,5 +105,31 @@ class GoodContentsHistoryMapperTest {
     private void saveBoardAndGoodHistory(List<BoardEntity> newBoards, BoardEntity likeContents, UserEntity userLoggedIn) {
         boardRepository.saveAll(newBoards);
         goodContentsHistoryRepository.save(GoodContentsHistoryEntity.builder().board(likeContents).user(userLoggedIn).build());
+    }
+
+    @Test
+    @DisplayName("특정 게시물 목록에 대해 해당 사용자가 좋아요 한 내역을 가져온다.")
+    void countByBoardInAndUser_test(){
+        List<BoardEntity> newBoards = getBoards(2);
+        BoardEntity likeContents = newBoards.get(0);
+        UserEntity userLoggedIn = getNonAuthorUser();
+        GoodContentsHistoryEntity goodContentsHistoryEntity = GoodContentsHistoryEntity.builder().board(likeContents).user(userLoggedIn).build();
+        saveBoardAndGoodHistory(newBoards, goodContentsHistoryEntity);
+
+        List<CountGoodContentsHistoryVO> vos = sut.countByBoardInAndUser(newBoards, userLoggedIn);
+
+        for (CountGoodContentsHistoryVO vo : vos){
+            assertThat(vo.getGroupId(), equalTo(likeContents.getId()));
+            assertThat(vo.getGoodContentsHistoryId(), equalTo(goodContentsHistoryEntity.getId()));
+        }
+    }
+
+    private UserEntity getNonAuthorUser() {
+        return userRepository.findAll().stream().filter(user -> user.equals(userEntity) == false).findFirst().get();
+    }
+
+    private void saveBoardAndGoodHistory(List<BoardEntity> newBoards, GoodContentsHistoryEntity goodContentsHistoryEntity) {
+        boardRepository.saveAll(newBoards);
+        goodContentsHistoryRepository.save(goodContentsHistoryEntity);
     }
 }
