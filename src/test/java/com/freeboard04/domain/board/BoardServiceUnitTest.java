@@ -3,7 +3,9 @@ package com.freeboard04.domain.board;
 import com.freeboard04.api.PageDto;
 import com.freeboard04.api.board.BoardDto;
 import com.freeboard04.api.user.UserForm;
+import com.freeboard04.domain.board.entity.specs.BoardSpecs;
 import com.freeboard04.domain.board.enums.BoardExceptionType;
+import com.freeboard04.domain.board.enums.SearchType;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryMapper;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
@@ -22,13 +24,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 
@@ -178,6 +179,29 @@ public class BoardServiceUnitTest {
         given(mockGoodHistoryMapper.countByBoardInAndUser(anyList(), any())).willReturn(spyCountGoodHistory);
 
         PageDto<BoardDto> result = sut.get(PageRequest.of(pageNumber, pageSize), Optional.of(UserForm.builder().accountId("mockTest").build()));
+
+        assertThat(result.getContents().get(0).getLikePoint(), equalTo(likePoint));
+        assertThat(result.getContents().get(0).isLike(), equalTo(true));
+    }
+
+    @Test
+    @DisplayName("작성자로 검색한 경우 - 데이터가 정확하게 합쳐지는지 확인한다.")
+    public void searchTest1() {
+        long groupId = 1L;
+        long likePoint = 10L;
+        int pageNumber = 1;
+        int pageSize = 1;
+
+        Page<BoardEntity> spyBoardEntityPage = getSpyBoardEntityPage(groupId, pageNumber, pageSize);
+        List<CountGoodContentsHistoryVO> spyCountGoodHistory = getSpyCountGoodContentsHistoryVOS(groupId, likePoint);
+
+        given(mockUserRepo.findAllByAccountIdLike(anyString())).willReturn(Lists.emptyList());
+        given(mockBoardRepo.findAllByWriterIn(Lists.emptyList(), PageUtil.convertToZeroBasePage(PageRequest.of(pageNumber, pageSize)))).willReturn(spyBoardEntityPage);
+        given(mockGoodHistoryMapper.countByBoardIn(anyList())).willReturn(spyCountGoodHistory);
+        given(mockUserRepo.findByAccountId(anyString())).willReturn(new UserEntity());
+        given(mockGoodHistoryMapper.countByBoardInAndUser(anyList(), any())).willReturn(spyCountGoodHistory);
+
+        PageDto<BoardDto> result = sut.search(PageRequest.of(pageNumber, pageSize), anyString(), SearchType.WRITER,  UserForm.builder().accountId("mockTest").build());
 
         assertThat(result.getContents().get(0).getLikePoint(), equalTo(likePoint));
         assertThat(result.getContents().get(0).isLike(), equalTo(true));
