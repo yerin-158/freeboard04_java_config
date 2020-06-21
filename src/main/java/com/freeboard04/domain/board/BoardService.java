@@ -26,7 +26,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +82,7 @@ public class BoardService {
 
     private List<BoardDto> combineBoardDto(List<BoardEntity> boardEntities, List<CountGoodContentsHistoryVO> boardsLikeCounts, List<CountGoodContentsHistoryVO> boardsLikeCountsByUser) {
         Map<Long, Long> boardsLikeCountsMap = boardsLikeCounts.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getLikeCount));
-        Map<Long, Long> boardsLikeCountsByUserMap = boardsLikeCountsByUser.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getLikeCount));
+        Map<Long, Long> boardsLikeCountsByUserMap = boardsLikeCountsByUser.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getGoodContentsHistoryId));
 
         return boardEntities.stream().map(boardEntity -> {
             BoardDto boardDto = BoardDto.of(boardEntity);
@@ -93,6 +92,9 @@ public class BoardService {
                 boardDto.setLikePoint(0);
             }
             boardDto.setLike(Optional.ofNullable(boardsLikeCountsByUserMap.get(boardDto.getId())).isPresent());
+            if (Optional.ofNullable(boardsLikeCountsByUserMap.get(boardDto.getId())).isPresent()) {
+                boardDto.setGoodHistoryId(boardsLikeCountsByUserMap.get(boardDto.getId()));
+            }
             return boardDto;
         }).collect(Collectors.toList());
     }
@@ -148,7 +150,7 @@ public class BoardService {
         }
     }
 
-    public void addGoodPoint(UserForm userForm, long boardId) {
+    public GoodContentsHistoryEntity addGoodPoint(UserForm userForm, long boardId) {
         UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
         BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
@@ -156,7 +158,7 @@ public class BoardService {
             throw new FreeBoardException(GoodContentsHistoryExceptionType.HISTORY_ALREADY_EXISTS);
         });
 
-        goodContentsHistoryRepository.save(
+        return goodContentsHistoryRepository.save(
                 GoodContentsHistoryEntity.builder()
                         .board(target)
                         .user(user)

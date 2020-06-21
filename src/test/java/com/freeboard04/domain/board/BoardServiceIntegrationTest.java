@@ -1,35 +1,88 @@
 package com.freeboard04.domain.board;
 
+import com.freeboard04.api.board.BoardDto;
+import com.freeboard04.api.user.UserForm;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
+import com.freeboard04.domain.user.UserEntity;
+import com.freeboard04.domain.user.UserRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml"})
 @Transactional
-@Rollback(value = false)
 public class BoardServiceIntegrationTest {
 
     @Autowired
     private BoardService sut;
-/*
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BoardRepository boardRepository;
+
+    @Autowired
+    private GoodContentsHistoryRepository goodContentsHistoryRepository;
+
     @Test
-    public void update() {
-        UserForm userForm = UserForm.builder().accountId("yerin").password("pass123").build();
-        UserEntity userEntity = userForm.convertUserEntity();
-        BoardForm boardForm = BoardForm.builder().title("제목입니다^^*").contents("오늘은 날씨가 좋네요").password("123!@#").build();
-        BoardEntity updatedEntity = BoardEntity.builder().title("수정 후 제목입니다^^*").contents("수정후 내용이에요~ 날씨가 좋네요").password("123!@#").build();
+    @DisplayName("BoardDto가 제대로 만들어지는지 확인한다.")
+    void combineBoardDto_test() {
+        UserEntity writer = userRepository.findAll().get(0);
+        UserEntity userLoggedIn = userRepository.findAll().get(1);
 
-        BoardEntity entity = sut.post(boardForm, userForm);
-        sut.update(updatedEntity, entity.getId());
+        int pageSize = (int) (Math.random() * 5) + 1;
+        int likeContentsCount = (int) (Math.random() * pageSize) + 1;
 
-        assertThat(boardForm.getContents(), equalTo(updatedEntity.getContents()));
-        assertThat(boardForm.getTitle(), equalTo(updatedEntity.getTitle()));
-    }*/
+        List<Long> likeBoardIds = new ArrayList<>();
+        List<Long> likeBoardHistoryIds = new ArrayList<>();
+        for (int index = 0; index < pageSize; ++index) {
+            BoardEntity boardEntity
+                    = boardRepository.save(BoardEntity.builder()
+                                                .writer(writer)
+                                                .title("combineBoardDto 테스트" + index)
+                                                .contents("내용")
+                                                .build());
+
+            if (index < likeContentsCount) {
+                likeBoardIds.add(boardEntity.getId());
+                GoodContentsHistoryEntity goodContentsHistoryEntity
+                        = goodContentsHistoryRepository.save(GoodContentsHistoryEntity.builder()
+                                                                    .board(boardEntity)
+                                                                    .user(userLoggedIn)
+                                                                    .build());
+                likeBoardHistoryIds.add(goodContentsHistoryEntity.getId());
+            }
+        }
+
+        List<BoardDto> target = sut.get(
+                PageRequest.of(0, pageSize, Sort.by(Sort.Direction.DESC, "createdAt")),
+                Optional.of(UserForm.builder().accountId(userLoggedIn.getAccountId()).build())
+        ).getContents();
+
+        List<BoardDto> likeTarget = target.stream().filter(dto -> dto.isLike()).collect(Collectors.toList());
+
+        assertThat(likeTarget.size(), equalTo(likeContentsCount));
+        for (BoardDto boardDto : likeTarget) {
+            assertThat(likeBoardIds, hasItem(boardDto.getId()));
+            assertThat(likeBoardHistoryIds, hasItems(boardDto.getGoodHistoryId()));
+        }
+    }
+
 }

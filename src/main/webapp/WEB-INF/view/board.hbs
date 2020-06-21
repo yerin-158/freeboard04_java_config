@@ -79,7 +79,7 @@
 
         var handleLikeClick = () => {
             if (nowBoardList[nowBoardIndex].like === true){
-                cancelLike(nowBoardList[nowBoardIndex].id, nowBoardList[nowBoardIndex].likeHistoryId)
+                cancelLike(nowBoardList[nowBoardIndex].id, nowBoardList[nowBoardIndex].goodHistoryId)
             } else {
                 addLike(nowBoardList[nowBoardIndex].id)
             }
@@ -93,24 +93,38 @@
                 if(typeof response.message != 'undefined'){
                     alert(response.message);
                 }else{
-                    var nowPoint = parseInt(nowBoardList[nowBoardIndex].likePoint);
-                    $('#boardModal').find('#likePoint').text(nowPoint+1);
+                    updateNowContentsByAddLike(nowBoardList[nowBoardIndex], response);
                 }
             })
         }
 
         var cancelLike = (boardId, goodHistoryId) => {
             $.ajax({
-                method: 'POST',
+                method: 'DELETE',
                 url: 'api/boards/' + boardId + "/good/" + goodHistoryId
             }).done(function (response) {
                 if(typeof response.message != 'undefined'){
                     alert(response.message);
                 }else{
-                    var nowPoint = parseInt(nowBoardList[nowBoardIndex].likePoint);
-                    $('#boardModal').find('#likePoint').text(nowPoint-1);
+                    updateNowContentsByCancelLike(nowBoardList[nowBoardIndex]);
                 }
             })
+        }
+
+        var updateNowContentsByAddLike = (nowBoard, response) => {
+            var nowPoint = parseInt(nowBoard.likePoint);
+            $('#boardModal').find('#likePoint').text(nowPoint+1);
+            nowBoard.likePoint = nowPoint+1;
+            nowBoard.like = true;
+            nowBoard.goodHistoryId = response.id;
+        }
+
+        var updateNowContentsByCancelLike = (nowBoard) => {
+            var nowPoint = parseInt(nowBoard.likePoint);
+            $('#boardModal').find('#likePoint').text(nowPoint-1);
+            nowBoard.likePoint = nowPoint-1;
+            nowBoard.like = false;
+            nowBoard.goodHistoryId = 0;
         }
 
         var attachBoard = (response) => {

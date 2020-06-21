@@ -21,6 +21,8 @@ public class BoardDto{
     private long likePoint;
     @Setter
     private boolean isLike;
+    @Setter
+    private long goodHistoryId;
 
     public BoardDto(BoardEntity board) {
         this.writer = UserDto.of(board.getWriter());
@@ -29,8 +31,6 @@ public class BoardDto{
         this.title = board.getTitle();
         this.createdAt = board.getCreatedAt();
     }
-
-
 
     public static BoardDto of(BoardEntity board) {
         return new BoardDto(board);
