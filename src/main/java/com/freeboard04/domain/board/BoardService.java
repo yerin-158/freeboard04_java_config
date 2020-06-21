@@ -116,14 +116,28 @@ public class BoardService {
         boardRepository.deleteById(id);
     }
 
-    public Page<BoardEntity> search(Pageable pageable, String keyword, SearchType type) {
+    public PageDto<BoardDto> search(Pageable pageable, String keyword, SearchType type, UserForm userForm) {
+        Page<BoardEntity> boardEntityPage = getBoardEntityPageByKeyword(pageable, keyword, type);
+
+        List<BoardEntity> boardEntities = boardEntityPage.getContent();
+        List<CountGoodContentsHistoryVO> boardsLikeCounts = goodContentsHistoryMapper.countByBoardIn(boardEntities);
+
+        UserEntity userLoggedIn = userRepository.findByAccountId(userForm.getAccountId());
+        List<CountGoodContentsHistoryVO> boardsLikeCountsByUser = goodContentsHistoryMapper.countByBoardInAndUser(boardEntities, userLoggedIn);
+
+        List<BoardDto> boardDtos = combineBoardDto(boardEntities, boardsLikeCounts, boardsLikeCountsByUser);
+        return PageDto.of(boardEntityPage, boardDtos);
+    }
+
+    private Page<BoardEntity> getBoardEntityPageByKeyword(Pageable pageable, String keyword, SearchType type) {
         if (type.equals(SearchType.WRITER)) {
             List<UserEntity> userEntityList = userRepository.findAllByAccountIdLike("%" + keyword + "%");
             return boardRepository.findAllByWriterIn(userEntityList, PageUtil.convertToZeroBasePageWithSort(pageable));
+        } else {
+            Specification<BoardEntity> spec = Specification.where(BoardSpecs.hasContents(keyword, type))
+                    .or(BoardSpecs.hasTitle(keyword, type));
+            return boardRepository.findAll(spec, PageUtil.convertToZeroBasePageWithSort(pageable));
         }
-        Specification<BoardEntity> spec = Specification.where(BoardSpecs.hasContents(keyword, type))
-                .or(BoardSpecs.hasTitle(keyword, type));
-        return boardRepository.findAll(spec, PageUtil.convertToZeroBasePageWithSort(pageable));
     }
 
     public void addGoodPoint(UserForm userForm, long boardId) {

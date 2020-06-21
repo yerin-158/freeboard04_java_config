@@ -64,9 +64,7 @@ public class BoardApiController {
         if (httpSession.getAttribute("USER") == null) {
             throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
         }
-        Page<BoardEntity> pageBoardList = boardService.search(pageable, keyword, type);
-        List<BoardDto> boardDtoList = pageBoardList.stream().map(boardEntity -> BoardDto.of(boardEntity)).collect(Collectors.toList());
-        return ResponseEntity.ok(PageDto.of(pageBoardList, boardDtoList));
+        return ResponseEntity.ok(boardService.search(pageable, keyword, type, (UserForm) httpSession.getAttribute("USER")));
     }
 
     @PostMapping("/{id}/good")
