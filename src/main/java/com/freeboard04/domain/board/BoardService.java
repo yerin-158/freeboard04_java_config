@@ -71,7 +71,11 @@ public class BoardService {
 
         return boardEntities.stream().map(boardEntity -> {
             BoardDto boardDto = BoardDto.of(boardEntity);
-            boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            if (Optional.ofNullable(boardsLikeCountsMap.get(boardDto.getId())).isPresent()){
+                boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            } else {
+                boardDto.setLikePoint(0);
+            }
             boardDto.setLike(false);
             return boardDto;
         }).collect(Collectors.toList());
@@ -83,7 +87,11 @@ public class BoardService {
 
         return boardEntities.stream().map(boardEntity -> {
             BoardDto boardDto = BoardDto.of(boardEntity);
-            boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            if (Optional.ofNullable(boardsLikeCountsMap.get(boardDto.getId())).isPresent()){
+                boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            } else {
+                boardDto.setLikePoint(0);
+            }
             boardDto.setLike(Optional.ofNullable(boardsLikeCountsByUserMap.get(boardDto.getId())).isPresent());
             return boardDto;
         }).collect(Collectors.toList());
