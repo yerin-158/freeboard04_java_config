@@ -1,13 +1,17 @@
 package com.freeboard04.domain.board;
 
+import com.freeboard04.api.PageDto;
+import com.freeboard04.api.board.BoardDto;
 import com.freeboard04.api.board.BoardForm;
 import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.entity.specs.BoardSpecs;
 import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryMapper;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04.domain.goodContentsHistory.enums.GoodContentsHistoryExceptionType;
+import com.freeboard04.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import com.freeboard04.domain.user.enums.UserExceptionType;
@@ -22,8 +26,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,16 +40,52 @@ public class BoardService {
     private BoardRepository boardRepository;
     private UserRepository userRepository;
     private GoodContentsHistoryRepository goodContentsHistoryRepository;
+    private GoodContentsHistoryMapper goodContentsHistoryMapper;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository, GoodContentsHistoryRepository goodContentsHistoryRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository, GoodContentsHistoryRepository goodContentsHistoryRepository, GoodContentsHistoryMapper goodContentsHistoryMapper) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
         this.goodContentsHistoryRepository = goodContentsHistoryRepository;
+        this.goodContentsHistoryMapper = goodContentsHistoryMapper;
     }
 
-    public Page<BoardEntity> get(Pageable pageable) {
-        return boardRepository.findAll(PageUtil.convertToZeroBasePageWithSort(pageable));
+    public PageDto<BoardDto> get(Pageable pageable, Optional<UserForm> userLoggedIn) {
+        Page<BoardEntity> boardEntityPage = boardRepository.findAll(PageUtil.convertToZeroBasePageWithSort(pageable));
+        List<BoardEntity> boardEntities = boardEntityPage.getContent();
+        List<CountGoodContentsHistoryVO> boardsLikeCounts = goodContentsHistoryMapper.countByBoardIn(boardEntities);
+
+        if (userLoggedIn.isPresent()) {
+            List<CountGoodContentsHistoryVO> boardsLikeCountsByUser = goodContentsHistoryMapper.countByBoardInAndUser(boardEntities, userLoggedIn.get().convertUserEntity());
+            List<BoardDto> boardDtos = combineBoardDto(boardEntities, boardsLikeCounts, boardsLikeCountsByUser);
+            return PageDto.of(boardEntityPage, boardDtos);
+        }
+
+        List<BoardDto> boardDtos = combineBoardDto(boardEntities, boardsLikeCounts);
+        return PageDto.of(boardEntityPage, boardDtos);
+    }
+
+    private List<BoardDto> combineBoardDto(List<BoardEntity> boardEntities, List<CountGoodContentsHistoryVO> boardsLikeCounts) {
+        Map<Long, Long> boardsLikeCountsMap = boardsLikeCounts.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getLikeCount));
+
+        return boardEntities.stream().map(boardEntity -> {
+            BoardDto boardDto = BoardDto.of(boardEntity);
+            boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            boardDto.setLike(false);
+            return boardDto;
+        }).collect(Collectors.toList());
+    }
+
+    private List<BoardDto> combineBoardDto(List<BoardEntity> boardEntities, List<CountGoodContentsHistoryVO> boardsLikeCounts, List<CountGoodContentsHistoryVO> boardsLikeCountsByUser) {
+        Map<Long, Long> boardsLikeCountsMap = boardsLikeCounts.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getLikeCount));
+        Map<Long, Long> boardsLikeCountsByUserMap = boardsLikeCountsByUser.stream().collect(Collectors.toMap(CountGoodContentsHistoryVO::getGroupId, CountGoodContentsHistoryVO::getLikeCount));
+
+        return boardEntities.stream().map(boardEntity -> {
+            BoardDto boardDto = BoardDto.of(boardEntity);
+            boardDto.setLikePoint(boardsLikeCountsMap.get(boardDto.getId()));
+            boardDto.setLike(Optional.ofNullable(boardsLikeCountsByUserMap.get(boardDto.getId())).isPresent());
+            return boardDto;
+        }).collect(Collectors.toList());
     }
 
     public BoardEntity post(BoardForm boardForm, UserForm userForm) {

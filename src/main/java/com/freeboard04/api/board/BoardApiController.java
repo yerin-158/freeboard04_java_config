@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,9 +30,7 @@ public class BoardApiController {
 
     @GetMapping
     public ResponseEntity<PageDto<BoardDto>> get(@PageableDefault(page = 1, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<BoardEntity> pageBoardList = boardService.get(pageable);
-        List<BoardDto> boardDtoList = pageBoardList.stream().map(boardEntity -> BoardDto.of(boardEntity)).collect(Collectors.toList());
-        return ResponseEntity.ok(PageDto.of(pageBoardList, boardDtoList));
+        return ResponseEntity.ok(boardService.get(pageable, Optional.ofNullable((UserForm) httpSession.getAttribute("USER"))));
     }
 
     @PostMapping
