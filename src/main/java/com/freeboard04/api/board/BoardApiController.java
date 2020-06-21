@@ -5,6 +5,7 @@ import com.freeboard04.api.user.UserForm;
 import com.freeboard04.domain.board.BoardEntity;
 import com.freeboard04.domain.board.BoardService;
 import com.freeboard04.domain.board.enums.SearchType;
+import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04.domain.user.enums.UserExceptionType;
 import com.freeboard04.util.exception.FreeBoardException;
 import lombok.RequiredArgsConstructor;
@@ -68,11 +69,11 @@ public class BoardApiController {
     }
 
     @PostMapping("/{id}/good")
-    public void addGoodPoint(@PathVariable long id){
+    public ResponseEntity<GoodContentsHistoryEntity> addGoodPoint(@PathVariable long id){
         if (httpSession.getAttribute("USER") == null) {
             throw new FreeBoardException(UserExceptionType.LOGIN_INFORMATION_NOT_FOUND);
         }
-        boardService.addGoodPoint((UserForm) httpSession.getAttribute("USER"), id);
+        return ResponseEntity.ok(boardService.addGoodPoint((UserForm) httpSession.getAttribute("USER"), id));
     }
 
     @DeleteMapping("/{boardId}/good/{goodHistoryId}")
