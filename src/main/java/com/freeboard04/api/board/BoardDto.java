@@ -4,6 +4,7 @@ import com.freeboard04.api.user.UserDto;
 import com.freeboard04.domain.board.BoardEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +17,9 @@ public class BoardDto{
     private String contents;
     private String title;
     private LocalDateTime createdAt;
-    private int likePoint;
+    @Setter
+    private long likePoint;
+    @Setter
     private boolean isLike;
 
     public BoardDto(BoardEntity board) {
@@ -26,6 +29,8 @@ public class BoardDto{
         this.title = board.getTitle();
         this.createdAt = board.getCreatedAt();
     }
+
+
 
     public static BoardDto of(BoardEntity board) {
         return new BoardDto(board);
