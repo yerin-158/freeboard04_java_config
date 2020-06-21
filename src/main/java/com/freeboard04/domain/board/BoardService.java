@@ -56,7 +56,8 @@ public class BoardService {
         List<CountGoodContentsHistoryVO> boardsLikeCounts = goodContentsHistoryMapper.countByBoardIn(boardEntities);
 
         if (userLoggedIn.isPresent()) {
-            List<CountGoodContentsHistoryVO> boardsLikeCountsByUser = goodContentsHistoryMapper.countByBoardInAndUser(boardEntities, userLoggedIn.get().convertUserEntity());
+            UserEntity user = userRepository.findByAccountId(userLoggedIn.get().getAccountId());
+            List<CountGoodContentsHistoryVO> boardsLikeCountsByUser = goodContentsHistoryMapper.countByBoardInAndUser(boardEntities, user);
             List<BoardDto> boardDtos = combineBoardDto(boardEntities, boardsLikeCounts, boardsLikeCountsByUser);
             return PageDto.of(boardEntityPage, boardDtos);
         }
