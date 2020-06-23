@@ -1,5 +1,6 @@
 package com.freeboard04.domain.comment;
 
+import com.freeboard04.api.comment.CommentForm;
 import com.freeboard04.domain.BaseEntity;
 import com.freeboard04.domain.board.BoardEntity;
 import com.freeboard04.domain.user.UserEntity;
@@ -35,7 +36,7 @@ public class CommentEntity extends BaseEntity {
         this.contents = contents;
     }
 
-    public void update(CommentEntity newComment) {
+    public void update(CommentForm newComment) {
         this.contents = newComment.getContents();
     }
 
