@@ -6,23 +6,26 @@ import com.freeboard04.domain.user.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
-@Table("comment")
+@Table(name = "comment")
 @NoArgsConstructor
+@DynamicUpdate
 public class CommentEntity extends BaseEntity {
 
     @ManyToOne
-    @Column(name = "boardId")
+    @JoinColumn(name = "boardId")
     private BoardEntity board;
 
     @OneToOne
-    @Column(name = "writerId")
+    @JoinColumn(name = "writerId")
     private UserEntity writer;
 
+    @Column
     private String contents;
 
     @Builder
@@ -33,7 +36,7 @@ public class CommentEntity extends BaseEntity {
     }
 
     public void update(CommentEntity newComment) {
-        this.contents = newComment.contents;
+        this.contents = newComment.getContents();
     }
 
 }
