@@ -8,6 +8,7 @@ import com.freeboard04.domain.board.enums.BoardExceptionType;
 import com.freeboard04.domain.board.enums.SearchType;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryRepository;
+import com.freeboard04.domain.goodContentsHistory.enums.GoodContentsHistoryExceptionType;
 import com.freeboard04.domain.user.UserEntity;
 import com.freeboard04.domain.user.UserRepository;
 import com.freeboard04.util.exception.FreeBoardException;
@@ -238,5 +239,18 @@ public class BoardApiControllerTest {
         setMockHttpSession(targetUser);
 
         return goodContentsHistoryEntity;
+    }
+
+    @Test
+    @DisplayName("자신이 작성한 글에 좋아요 시도 시 예외가 발생한다.")
+    void add_like_exception_test() throws Exception {
+        BoardEntity newBoard = BoardEntity.builder().contents("contents").title("title").writer(testUser).build();
+        boardRepository.save(newBoard);
+
+        mvc.perform(post("/api/boards/" + newBoard.getId() + "/good")
+                .session(mockHttpSession))
+                .andExpect(result -> assertEquals(result.getResolvedException().getClass().getCanonicalName(), FreeBoardException.class.getCanonicalName()))
+                .andExpect(result -> assertEquals(result.getResolvedException().getMessage(), GoodContentsHistoryExceptionType.CANNOT_LIKE_OWN_WRITING.getErrorMessage()))
+                .andExpect(status().isOk());
     }
 }

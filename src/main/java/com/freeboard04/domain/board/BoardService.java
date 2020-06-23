@@ -154,6 +154,10 @@ public class BoardService {
         UserEntity user = Optional.of(userRepository.findByAccountId(userForm.getAccountId())).orElseThrow(() -> new FreeBoardException(UserExceptionType.NOT_FOUND_USER));
         BoardEntity target = Optional.of(boardRepository.findById(boardId).get()).orElseThrow(() -> new FreeBoardException(BoardExceptionType.NOT_FOUNT_CONTENTS));
 
+        if (target.getWriter().equals(user)){
+            throw new FreeBoardException(GoodContentsHistoryExceptionType.CANNOT_LIKE_OWN_WRITING);
+        }
+
         goodContentsHistoryRepository.findByUserAndBoard(user, target).ifPresent(none -> {
             throw new FreeBoardException(GoodContentsHistoryExceptionType.HISTORY_ALREADY_EXISTS);
         });
