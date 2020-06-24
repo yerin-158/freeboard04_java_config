@@ -1,28 +1,32 @@
 package com.freeboard04.domain.comment;
 
+import com.freeboard04.api.comment.CommentForm;
 import com.freeboard04.domain.BaseEntity;
 import com.freeboard04.domain.board.BoardEntity;
 import com.freeboard04.domain.user.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
-@Table("comment")
+@Table(name = "comment")
 @NoArgsConstructor
+@DynamicUpdate
 public class CommentEntity extends BaseEntity {
 
     @ManyToOne
-    @Column(name = "boardId")
+    @JoinColumn(name = "boardId")
     private BoardEntity board;
 
     @OneToOne
-    @Column(name = "writerId")
+    @JoinColumn(name = "writerId")
     private UserEntity writer;
 
+    @Column
     private String contents;
 
     @Builder
@@ -32,8 +36,8 @@ public class CommentEntity extends BaseEntity {
         this.contents = contents;
     }
 
-    public void update(CommentEntity newComment) {
-        this.contents = newComment.contents;
+    public void update(CommentForm newComment) {
+        this.contents = newComment.getContents();
     }
 
 }
