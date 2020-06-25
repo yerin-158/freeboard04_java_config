@@ -1,0 +1,14 @@
+<script id="commentsTemplate" type="text/x-handlebars-template">
+    \{{#if comments}}
+        <div class="row border-top border-primary py-3">
+            <div class="col-12">Comments</div>
+        </div>
+        \{{#comments}}
+        <div class="row border-bottom py-1" data-id="\{{id}}">
+            <p class="col-2" style="margin-bottom: 0; !important">\{{writer.accountId}}</p>
+            <p class="col-7" style="margin-bottom: 0; padding-right: 0; padding-left: 0; !important">\{{contents}}</p>
+            <p class="col-3" style="margin-bottom: 0; padding-right: 0; !important"><small>\{{createdAt}}</small></p>
+        </div>
+        \{{/comments}}
+    \{{/if}}
+</script>
