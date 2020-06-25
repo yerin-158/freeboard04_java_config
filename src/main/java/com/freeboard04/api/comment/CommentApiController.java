@@ -30,7 +30,7 @@ public class CommentApiController {
     @GetMapping(params = {"boardId"})
     public ResponseEntity<PageDto<CommentDto>> get(@PageableDefault(page = 1, size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                                                    @RequestParam long boardId) {
-        Page<CommentEntity> commentEntityPage = commentService.get(PageUtil.convertToZeroBasePage(pageable), boardId);
+        Page<CommentEntity> commentEntityPage = commentService.get(PageUtil.convertToZeroBasePageWithSort(pageable), boardId);
         List<CommentDto> commentEntities = commentEntityPage.getContent().stream().map(commentEntity -> CommentDto.of(commentEntity)).collect(Collectors.toList());
 
         return ResponseEntity.ok(PageDto.of(commentEntityPage, commentEntities));
