@@ -43,6 +43,7 @@
     {{> template/table}}
     {{> template/pageMarker}}
     {{> template/modal}}
+    {{> template/comments}}
     <script>
         let nowBoardList = new Object();
         let nowBoardIndex = 0;
@@ -148,7 +149,77 @@
             nowBoardIndex = index;
             setModalData(index);
             setModifyModal();
+            getComments(nowBoardList[index].id, 1, setComments);
             $('#boardModal').modal("show");
+        }
+
+        var setComments = (response) => {
+            var template = Handlebars.compile($("#commentsTemplate").html());
+            $.each(response.contents, function(index, item) {
+                var createdAt = item.createdAt;
+                item.createdAt = createdAt.monthValue + "/" + createdAt.dayOfMonth + " (" + createdAt.hour + ":" + createdAt.minute + ")"
+            });
+            $("#commentsSpace").html(template({
+                    comments: response.contents,
+                    accountId: accountId,
+                    boardId: nowBoardList[nowBoardIndex].id
+                })
+            );
+        }
+
+        var getComments = (boardId, page = 1, callback = null) => {
+            const SIZE = 5;
+
+            $.ajax({
+                method: 'GET',
+                url: 'api/comments?page=' + page + "&size=" + SIZE + "&boardId=" + boardId
+            }).done(function (response) {
+                if (typeof response != 'undefined') {
+                    if (typeof response.code != 'undefined') {
+                        alert(response.message);
+                    } else if (callback != null) {
+                        callback(response);
+                    }
+                }
+            })
+        }
+
+        $(document).on('click', '#addCommentButton', function (event) {
+            var commentForm = setCommentForm();
+
+            $.ajax({
+                method: 'POST',
+                url: 'api/comments?boardId=' + event.target.dataset.boardid,
+                contentType: 'application/json',
+                data: JSON.stringify(commentForm)
+            }).done(function (response) {
+                if (typeof response != 'undefined') {
+                    if (typeof response.code != 'undefined') {
+                        alert(response.message);
+                    } else {
+                        getComments(event.target.dataset.boardid, 1, setComments);
+                    }
+                }
+            })
+        })
+
+        var setCommentForm = () => {
+            var commentForm = new Object();
+            commentForm.contents = $("#commentInput").val();
+            return commentForm;
+        }
+
+        var deleteComments = (commentId, boardId) => {
+            $.ajax({
+                method: 'DELETE',
+                url: 'api/comments/' + commentId
+            }).done(function (response) {
+                if (typeof response != 'undefined' && typeof response.code != 'undefined') {
+                    alert(response.message);
+                } else {
+                    getComments(boardId, 1, setComments);
+                }
+            })
         }
 
         var setModalData = (index) => {

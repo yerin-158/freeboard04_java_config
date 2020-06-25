@@ -1,0 +1,19 @@
+<script id="commentsTemplate" type="text/x-handlebars-template">
+    <div class="row border-top border-primary py-3">
+        <div class="col-12 mb-2">Comments</div>
+        <div class="col-10" style="padding-left: 0; !important"><input type="text" class="form-control" id="commentInput"></div>
+        <button type="button" class="col-2 btn btn-primary btn-sm" id="addCommentButton" data-boardId=\{{boardId}}>댓글 입력</button>
+    </div>
+    \{{#comments}}
+    <div class="row border-bottom py-1" data-id="\{{id}}">
+        <p class="col-2" style="margin-bottom: 0; !important">\{{writer.accountId}}</p>
+        <p class="col-7" style="margin-bottom: 0; padding-right: 0; padding-left: 0; !important">\{{contents}}</p>
+        <p class="col-3" style="margin-bottom: 0; padding-right: 0; !important">
+           <small>\{{createdAt}}</small>
+           \{{#if (eq ../accountId writer.accountId)}}
+           <strong class="text-danger ml-2" onclick="deleteComments(\{{id}}, \{{../boardId}})">X</strong>
+           \{{/if}}
+        </p>
+    </div>
+    \{{/comments}}
+</script>
