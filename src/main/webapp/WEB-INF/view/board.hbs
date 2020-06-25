@@ -209,6 +209,19 @@
             return commentForm;
         }
 
+        var deleteComments = (commentId, boardId) => {
+            $.ajax({
+                method: 'DELETE',
+                url: 'api/comments/' + commentId
+            }).done(function (response) {
+                if (typeof response != 'undefined' && typeof response.code != 'undefined') {
+                    alert(response.message);
+                } else {
+                    getComments(boardId, 1, setComments);
+                }
+            })
+        }
+
         var setModalData = (index) => {
             var $modal = $('#boardModal');
             $modal.find('#user').val(nowBoardList[index].writer.accountId);
