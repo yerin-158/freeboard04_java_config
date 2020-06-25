@@ -159,7 +159,12 @@
                 var createdAt = item.createdAt;
                 item.createdAt = createdAt.monthValue + "/" + createdAt.dayOfMonth + " (" + createdAt.hour + ":" + createdAt.minute + ")"
             });
-            $("#commentsSpace").html(template({comments: response.contents, accountId: accountId}));
+            $("#commentsSpace").html(template({
+                    comments: response.contents,
+                    accountId: accountId,
+                    boardId: nowBoardList[nowBoardIndex].id
+                })
+            );
         }
 
         var getComments = (boardId, page = 1, callback = null) => {
@@ -177,6 +182,31 @@
                     }
                 }
             })
+        }
+
+        $(document).on('click', '#addCommentButton', function (event) {
+            var commentForm = setCommentForm();
+
+            $.ajax({
+                method: 'POST',
+                url: 'api/comments?boardId=' + event.target.dataset.boardid,
+                contentType: 'application/json',
+                data: JSON.stringify(commentForm)
+            }).done(function (response) {
+                if (typeof response != 'undefined') {
+                    if (typeof response.code != 'undefined') {
+                        alert(response.message);
+                    } else {
+                        getComments(event.target.dataset.boardid, 1, setComments);
+                    }
+                }
+            })
+        })
+
+        var setCommentForm = () => {
+            var commentForm = new Object();
+            commentForm.contents = $("#commentInput").val();
+            return commentForm;
         }
 
         var setModalData = (index) => {
