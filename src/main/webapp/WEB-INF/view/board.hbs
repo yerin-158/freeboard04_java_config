@@ -157,7 +157,7 @@
             var template = Handlebars.compile($("#commentsTemplate").html());
             $.each(response.contents, function(index, item) {
                 var createdAt = item.createdAt;
-                item.createdAt = createdAt.month + "/" + createdAt.monthValue + " (" + createdAt.hour + ":" + createdAt.minute + ")"
+                item.createdAt = createdAt.monthValue + "/" + createdAt.dayOfMonth + " (" + createdAt.hour + ":" + createdAt.minute + ")"
             });
             $("#commentsSpace").html(template({comments: response.contents, accountId: accountId}));
         }
