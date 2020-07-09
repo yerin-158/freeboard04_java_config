@@ -2,6 +2,7 @@ package com.freeboard04_java_config.domain.board;
 
 import com.freeboard04_java_config.api.board.BoardDto;
 import com.freeboard04_java_config.api.user.UserForm;
+import com.freeboard04_java_config.config.ApplicationContext;
 import com.freeboard04_java_config.domain.goodContentsHistory.GoodContentsHistoryEntity;
 import com.freeboard04_java_config.domain.goodContentsHistory.GoodContentsHistoryRepository;
 import com.freeboard04_java_config.domain.user.UserEntity;
@@ -25,7 +26,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml"})
+@ContextConfiguration(classes = ApplicationContext.class)
 @Transactional
 public class BoardServiceIntegrationTest {
 

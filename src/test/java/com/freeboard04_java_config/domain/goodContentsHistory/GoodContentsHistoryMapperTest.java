@@ -1,5 +1,6 @@
 package com.freeboard04_java_config.domain.goodContentsHistory;
 
+import com.freeboard04_java_config.config.ApplicationContext;
 import com.freeboard04_java_config.domain.board.BoardEntity;
 import com.freeboard04_java_config.domain.board.BoardRepository;
 import com.freeboard04_java_config.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO;
@@ -25,7 +26,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml"})
+@ContextConfiguration(classes = ApplicationContext.class)
 @Transactional
 class GoodContentsHistoryMapperTest {
 
