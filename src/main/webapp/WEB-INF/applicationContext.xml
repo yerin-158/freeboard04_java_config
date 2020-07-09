@@ -14,7 +14,7 @@
 
     <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource" />
-        <property name="packagesToScan" value="com.freeboard04.domain" />
+        <property name="packagesToScan" value="com.freeboard04_java_config.domain" />
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
         </property>
@@ -46,16 +46,16 @@
     </bean>
 
     <bean id="goodContentsHistoryMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="com.freeboard04.domain.goodContentsHistory.GoodContentsHistoryMapper"/>
+        <property name="mapperInterface" value="com.freeboard04_java_config.domain.goodContentsHistory.GoodContentsHistoryMapper"/>
         <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
     </bean>
 
 
-    <jpa:repositories base-package="com.freeboard04.domain" />
+    <jpa:repositories base-package="com.freeboard04_java_config.domain" />
 
     <tx:annotation-driven />
 
-    <context:component-scan base-package="com.freeboard04.domain">
+    <context:component-scan base-package="com.freeboard04_java_config.domain">
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Repository" />
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />

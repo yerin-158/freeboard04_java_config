@@ -15,6 +15,6 @@
     </properties>
 
     <typeAliases>
-        <typeAlias alias="goodHistoryVo" type="com.freeboard04.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO"/>
+        <typeAlias alias="goodHistoryVo" type="com.freeboard04_java_config.domain.goodContentsHistory.vo.CountGoodContentsHistoryVO"/>
     </typeAliases>
 </configuration>
