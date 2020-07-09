@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -23,6 +24,10 @@ import java.util.Properties;
 @ImportResource({"classpath:applicationContext.xml"})
 @EnableTransactionManagement // 어노테이션 기반 트랜잭션 관리 사용
 @MapperScan(basePackages = {"com.freeboard04_java_config.domain"})
+@EnableJpaRepositories(
+        entityManagerFactoryRef = "entityManagerFactory",
+        transactionManagerRef = "transactionManager",
+        basePackages = {"com.freeboard04_java_config.domain"})
 public class ApplicationContext {
 
     @Autowired
