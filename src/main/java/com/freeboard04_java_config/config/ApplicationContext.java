@@ -6,6 +6,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -28,6 +29,7 @@ import java.util.Properties;
         entityManagerFactoryRef = "entityManagerFactory",
         transactionManagerRef = "transactionManager",
         basePackages = {"com.freeboard04_java_config.domain"})
+@ComponentScan(basePackages = {"com.freeboard04_java_config.domain"})
 public class ApplicationContext {
 
     @Autowired
