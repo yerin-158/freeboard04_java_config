@@ -1,11 +1,13 @@
 package com.freeboard04_java_config.config;
 
-import com.freeboard04_java_config.domain.board.BoardRepository;
-import org.springframework.beans.factory.FactoryBean;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -14,17 +16,20 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.sql.CallableStatement;
 import java.util.Properties;
 
 @Configuration
 @ImportResource({"classpath:applicationContext.xml"})
+@EnableTransactionManagement // 어노테이션 기반 트랜잭션 관리 사용
+@MapperScan(basePackages = {"com.freeboard04_java_config.domain"})
 public class ApplicationContext {
 
+    @Autowired
+    org.springframework.context.ApplicationContext applicationContext;
+
     @Bean
-    public DataSource dataSource(){
+    public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl("jdbc:mysql://127.0.0.1:3306/free_board?serverTimezone=UTC&useSSL=false");
@@ -45,7 +50,7 @@ public class ApplicationContext {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
-        em.setPackagesToScan(new String[] {"com.freeboard04_java_config.domain"});
+        em.setPackagesToScan(new String[]{"com.freeboard04_java_config.domain"});
 
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
@@ -62,6 +67,20 @@ public class ApplicationContext {
         properties.setProperty("hibernate.connection.autocommit", "true");
 
         return properties;
+    }
+
+    @Bean
+    public SqlSessionFactory sqlSessionFactory() throws Exception {
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(dataSource());
+        sqlSessionFactoryBean.setConfigLocation(applicationContext.getResource("classpath:mybatis-config.xml"));
+        sqlSessionFactoryBean.setMapperLocations(applicationContext.getResource("classpath:mappers/goodContentsHistory-mapper.xml"));
+        return sqlSessionFactoryBean.getObject();
+    }
+
+    @Bean
+    public SqlSessionTemplate sqlSession() throws Exception {
+        return new SqlSessionTemplate(sqlSessionFactory());
     }
 
 }
