@@ -2,6 +2,9 @@ package com.freeboard04_java_config.api.board;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freeboard04_java_config.api.user.UserForm;
+import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.WebConfig;
+import com.freeboard04_java_config.config.WebInitializer;
 import com.freeboard04_java_config.domain.board.BoardEntity;
 import com.freeboard04_java_config.domain.board.BoardRepository;
 import com.freeboard04_java_config.domain.board.enums.BoardExceptionType;
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,9 +34,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml", "file:src/main/webapp/WEB-INF/dispatcher-servlet.xml"})
+@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
 public class BoardApiControllerTest {
@@ -173,35 +182,27 @@ public class BoardApiControllerTest {
     }
 
     private Map<String, Object> getTargetUserAndBoard() {
-        boolean findTarget = false;
-        long boardTotal = boardRepository.count();
-        int findSize = 30;
-
         Map<String, Object> target = new HashMap<>();
-
         List<UserEntity> userEntities = userRepository.findAll();
 
         for (UserEntity user : userEntities) {
-            for (int index = 0; index <= boardTotal / findSize; index += findSize) {
-                Page<BoardEntity> boardEntityPage = boardRepository.findAll(PageRequest.of(index, findSize));
-                List<BoardEntity> boardEntities = boardEntityPage.getContent().stream().filter(entity -> entity.getWriter().equals(user) == false).collect(Collectors.toList());
-                for (BoardEntity board : boardEntities) {
-                    if (goodContentsHistoryRepository.findByUserAndBoard(user, board).isPresent() == false) {
-                        target.put("targetUser", user);
-                        target.put("targetBoard", board);
-                        findTarget = true;
-                        break;
-                    }
+            List<BoardEntity> boardEntities = boardRepository.findAll(new Specification<BoardEntity>() {
+                @Override
+                public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
+                    return criteriaBuilder.notEqual(root.get("writer"), user);
                 }
-                if (findTarget) {
-                    break;
+            });
+
+            for (BoardEntity board : boardEntities) {
+                if (goodContentsHistoryRepository.findAllByUserAndBoard(user, board).size() == 0){
+                    target.put("targetUser", user);
+                    target.put("targetBoard", board);
+                    return target;
                 }
-            }
-            if (findTarget) {
-                break;
             }
         }
-        return target;
+
+        throw new RuntimeException("사용 가능한 데이터가 존재하지 않습니다.");
     }
 
     private void setMockHttpSession(UserEntity targetUser) {
