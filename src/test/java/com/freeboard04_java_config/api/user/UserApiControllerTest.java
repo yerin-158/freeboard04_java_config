@@ -1,8 +1,12 @@
 package com.freeboard04_java_config.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.WebConfig;
 import com.freeboard04_java_config.domain.user.UserEntity;
 import com.freeboard04_java_config.domain.user.UserRepository;
+import com.freeboard04_java_config.domain.user.enums.UserExceptionType;
+import com.freeboard04_java_config.util.exception.FreeBoardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,15 +24,14 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml", "file:src/main/webapp/WEB-INF/dispatcher-servlet.xml"})
+@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
-@Rollback(value = false)
 public class UserApiControllerTest {
 
     @Autowired
@@ -67,8 +70,7 @@ public class UserApiControllerTest {
         mvc.perform(post("/api/users")
                 .content(objectMapper.writeValueAsString(userForm))
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -79,8 +81,9 @@ public class UserApiControllerTest {
         mvc.perform(post("/api/users")
                 .content(objectMapper.writeValueAsString(userForm))
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(result -> assertEquals(result.getResolvedException().getMessage(), UserExceptionType.DUPLICATED_USER.getErrorMessage()))
+                .andExpect(result -> assertEquals(result.getResolvedException().getClass().getCanonicalName(), FreeBoardException.class.getCanonicalName()))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -93,8 +96,7 @@ public class UserApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(userForm)))
                 .andExpect(request().sessionAttribute("USER", notNullValue()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -107,8 +109,9 @@ public class UserApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(userForm)))
                 .andExpect(request().sessionAttribute("USER", nullValue()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(result -> assertEquals(result.getResolvedException().getMessage(), UserExceptionType.WRONG_PASSWORD.getErrorMessage()))
+                .andExpect(result -> assertEquals(result.getResolvedException().getClass().getCanonicalName(), FreeBoardException.class.getCanonicalName()))
+                .andExpect(status().isOk());
     }
 
 
