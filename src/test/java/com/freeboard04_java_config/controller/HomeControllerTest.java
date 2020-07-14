@@ -2,6 +2,8 @@ package com.freeboard04_java_config.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freeboard04_java_config.api.user.UserForm;
+import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.WebConfig;
 import com.freeboard04_java_config.domain.user.UserEntity;
 import com.freeboard04_java_config.domain.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml", "file:src/main/webapp/WEB-INF/dispatcher-servlet.xml"})
+@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
 @Rollback(value = false)

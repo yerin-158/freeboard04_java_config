@@ -3,6 +3,7 @@ package com.freeboard04_java_config.domain.comment;
 import com.freeboard04_java_config.api.comment.CommentDto;
 import com.freeboard04_java_config.api.comment.CommentForm;
 import com.freeboard04_java_config.api.user.UserForm;
+import com.freeboard04_java_config.config.ApplicationContext;
 import com.freeboard04_java_config.domain.board.BoardEntity;
 import com.freeboard04_java_config.domain.board.BoardRepository;
 import com.freeboard04_java_config.domain.user.UserEntity;
@@ -25,7 +26,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/applicationContext.xml"})
+@ContextConfiguration(classes = {ApplicationContext.class})
 @Transactional
 @Rollback(false)
 class CommentServiceIntegrationTest {
