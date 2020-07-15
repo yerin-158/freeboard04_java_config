@@ -18,7 +18,7 @@ public class WebInitializer implements WebApplicationInitializer {
 
     private void registerDispatcherServlet(ServletContext servletContext) {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register(ApplicationContext.class);
+        context.register(ApplicationConfig.class);
 
         servletContext.addListener(new ContextLoaderListener(context));
 

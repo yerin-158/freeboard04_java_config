@@ -2,9 +2,8 @@ package com.freeboard04_java_config.api.board;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freeboard04_java_config.api.user.UserForm;
-import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import com.freeboard04_java_config.config.WebConfig;
-import com.freeboard04_java_config.config.WebInitializer;
 import com.freeboard04_java_config.domain.board.BoardEntity;
 import com.freeboard04_java_config.domain.board.BoardRepository;
 import com.freeboard04_java_config.domain.board.enums.BoardExceptionType;
@@ -20,8 +19,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
@@ -41,8 +38,6 @@ import javax.persistence.criteria.Root;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -50,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
+@ContextConfiguration(classes = {ApplicationConfig.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
 public class BoardApiControllerTest {

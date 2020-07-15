@@ -1,7 +1,7 @@
 package com.freeboard04_java_config.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import com.freeboard04_java_config.config.WebConfig;
 import com.freeboard04_java_config.domain.user.UserEntity;
 import com.freeboard04_java_config.domain.user.UserRepository;
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -29,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
+@ContextConfiguration(classes = {ApplicationConfig.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
 public class UserApiControllerTest {

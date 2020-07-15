@@ -3,8 +3,7 @@ package com.freeboard04_java_config.domain.board;
 import com.freeboard04_java_config.api.PageDto;
 import com.freeboard04_java_config.api.board.BoardDto;
 import com.freeboard04_java_config.api.user.UserForm;
-import com.freeboard04_java_config.config.ApplicationContext;
-import com.freeboard04_java_config.config.WebConfig;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import com.freeboard04_java_config.domain.board.enums.BoardExceptionType;
 import com.freeboard04_java_config.domain.board.enums.SearchType;
 import com.freeboard04_java_config.domain.goodContentsHistory.GoodContentsHistoryEntity;
@@ -40,7 +39,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class, SpringExtension.class})
-@ContextConfiguration(classes = {ApplicationContext.class})
+@ContextConfiguration(classes = {ApplicationConfig.class})
 public class BoardServiceUnitTest {
 
     @InjectMocks

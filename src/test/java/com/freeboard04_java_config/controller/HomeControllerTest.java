@@ -2,7 +2,7 @@ package com.freeboard04_java_config.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freeboard04_java_config.api.user.UserForm;
-import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import com.freeboard04_java_config.config.WebConfig;
 import com.freeboard04_java_config.domain.user.UserEntity;
 import com.freeboard04_java_config.domain.user.UserRepository;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationContext.class, WebConfig.class})
+@ContextConfiguration(classes = {ApplicationConfig.class, WebConfig.class})
 @Transactional
 @WebAppConfiguration
 @Rollback(value = false)

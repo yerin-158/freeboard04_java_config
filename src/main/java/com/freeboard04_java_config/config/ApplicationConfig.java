@@ -5,6 +5,7 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -28,10 +29,10 @@ import java.util.Properties;
         transactionManagerRef = "transactionManager",
         basePackages = {"com.freeboard04_java_config.domain"})
 @ComponentScan(basePackages = {"com.freeboard04_java_config.domain"})
-public class ApplicationContext {
+public class ApplicationConfig {
 
     @Autowired
-    org.springframework.context.ApplicationContext applicationContext;
+    ApplicationContext applicationContext;
 
     @Bean
     public DataSource dataSource() {
