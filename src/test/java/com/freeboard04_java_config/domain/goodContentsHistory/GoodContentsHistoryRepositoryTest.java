@@ -1,6 +1,6 @@
 package com.freeboard04_java_config.domain.goodContentsHistory;
 
-import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import com.freeboard04_java_config.domain.board.BoardEntity;
 import com.freeboard04_java_config.domain.board.BoardRepository;
 import com.freeboard04_java_config.domain.user.UserEntity;
@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationContext.class})
+@ContextConfiguration(classes = {ApplicationConfig.class})
 @Transactional
 class GoodContentsHistoryRepositoryTest {
 

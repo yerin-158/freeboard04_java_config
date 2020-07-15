@@ -1,6 +1,6 @@
 package com.freeboard04_java_config.domain.user;
 
-import com.freeboard04_java_config.config.ApplicationContext;
+import com.freeboard04_java_config.config.ApplicationConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.transaction.Transactional;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationContext.class})
+@ContextConfiguration(classes = {ApplicationConfig.class})
 @Transactional
 @Rollback(value = false)
 public class UserRepositoryIntegrationTest {
